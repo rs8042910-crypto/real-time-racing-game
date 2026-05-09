@@ -43,3 +43,8 @@ Real-time multiplayer car racing game using Node.js and Socket.IO.
 ## Testing
 
 See `TESTING.md` for manual multiplayer, matchmaking, and API test steps.
+
+
+## Playable demo UI
+
+The web client now includes garage/shop action buttons so you can buy cars, buy upgrades, claim race rewards, buy premium currency, and trigger matchmaking countdown directly in the browser.
