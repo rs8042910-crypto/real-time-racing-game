@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Real-Time Racing Game</title>
+    <style>
+      body { font-family: system-ui, sans-serif; margin: 0; background: #0f172a; color: #e2e8f0; }
+      .wrap { max-width: 980px; margin: 24px auto; padding: 0 16px; }
+      canvas { background: #111827; border: 2px solid #334155; width: 100%; height: auto; }
+      .hud { display: flex; justify-content: space-between; margin: 8px 0 16px; font-size: 14px; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>Multiplayer Car Game Prototype</h1>
+      <div class="hud">
+        <div>Controls: Arrow keys / WASD</div>
+        <div id="status">Connecting...</div>
+      </div>
+      <canvas id="track" width="900" height="500"></canvas>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      const socket = io();
+      const canvas = document.getElementById('track');
+      const ctx = canvas.getContext('2d');
+      const statusEl = document.getElementById('status');
+      const keys = { up: false, down: false, left: false, right: false };
+      let me = null;
+      let state = { players: [] };
+
+      socket.on('connect', () => { statusEl.textContent = `Connected: ${socket.id}`; });
+      socket.on('bootstrap', (payload) => { me = payload.me; });
+      socket.on('state', (nextState) => { state = nextState; render(); });
+      socket.on('disconnect', () => { statusEl.textContent = 'Disconnected'; });
+
+      function setKey(code, pressed) {
+        if (code === 'ArrowUp' || code === 'KeyW') keys.up = pressed;
+        if (code === 'ArrowDown' || code === 'KeyS') keys.down = pressed;
+        if (code === 'ArrowLeft' || code === 'KeyA') keys.left = pressed;
+        if (code === 'ArrowRight' || code === 'KeyD') keys.right = pressed;
+        socket.emit('player:input', keys);
+      }
+
+      addEventListener('keydown', (e) => setKey(e.code, true));
+      addEventListener('keyup', (e) => setKey(e.code, false));
+
+      function render() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#1f2937';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        for (const p of state.players) {
+          ctx.fillStyle = p.color;
+          ctx.fillRect(p.x - 10, p.y - 6, 20, 12);
+          if (me && p.id === me.id) {
+            ctx.strokeStyle = '#f8fafc';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(p.x - 12, p.y - 8, 24, 16);
+          }
+        }
+      }
+    </script>
+  </body>
+</html>
